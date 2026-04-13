@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gerenciador de Playlist</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🎵 Minha Playlist</h1>
+            <p class="subtitulo">Gerencie suas músicas favoritas</p>
+        </header>
+
+        <section class="card" id="secao-adicionar">
+            <h2>Adicionar música</h2>
+            <div class="form-grid">
+                <div class="campo">
+                    <label for="input-nome">Nome da música</label>
+                    <input type="text" id="input-nome" placeholder="Ex: Bohemian Rhapsody" />
+                </div>
+                <div class="campo">
+                    <label for="input-artista">Artista</label>
+                    <input type="text" id="input-artista" placeholder="Ex: Queen" />
+                </div>
+                <div class="campo">
+                    <label for="input-genero">Gênero</label>
+                    <input type="text" id="input-genero" placeholder="Ex: Rock" />
+                </div>
+                <div class="campo campo-duracao">
+                    <label>Duracao</label>
+                    <div class="duracao-inputs">
+                        <input type="number" id="input-min" placeholder="min" min="0" max="59" />
+                        <span>:</span>
+                        <input type="number" id="input-seg" placeholder="seg" min="0" max="59" />
+                    </div>
+                </div>
+            </div>
+            <button id="btn-adicionar" onclick="adicionarDaInterface()">Adicionar</button>
+        </section>
+
+        <section class="card" id="secao-playlist">
+            <div class="secao-header">
+                <h2>Playlist</h2>
+                <div class="acoes">
+                    <button onclick="ordenarEExibir()">Ordenar A-Z</button>
+                    <button onclick="gerarEExibirRelatorio()">Ver relatório</button>
+                </div>
+            </div>
+
+            <div class="filtros">
+                <input type="text" id="input-filtro-artista" placeholder="Filtrar por artista..." />
+                <button onclick="filtrarArtista()">Filtrar</button>
+                <input type="text" id="input-filtro-genero" placeholder="Filtrar por genero..." />
+                <button onclick="filtrarGenero()">Filtrar</button>
+                <button onclick="limparFiltro()">Limpar filtro</button>
+            </div>
+
+            <ul class="lista-musicas" id="lista-musicas">
+                <li class="item-musica" id="musica0">
+                    <span class="numero">1.</span>
+                    <span class="info-musica">—</span>
+                    <div class="acoes-item">
+                        <button class="btn-fav" onclick="alternarFavorita(0); mostra()">★</button>
+                    </div>
+                </li>
+                <li class="item-musica" id="musica1">
+                    <span class="numero">2.</span>
+                    <span class="info-musica">—</span>
+                    <div class="acoes-item">
+                        <button class="btn-fav" onclick="alternarFavorita(1); mostra()">★</button>
+                    </div>
+                </li>
+                <li class="item-musica" id="musica2">
+                    <span class="numero">3.</span>
+                    <span class="info-musica">—</span>
+                    <div class="acoes-item">
+                        <button class="btn-fav" onclick="alternarFavorita(2); mostra()">★</button>
+                    </div>
+                </li>
+                <li class="item-musica" id="musica3">
+                    <span class="numero">4.</span>
+                    <span class="info-musica">—</span>
+                    <div class="acoes-item">
+                        <button class="btn-fav" onclick="alternarFavorita(3); mostra()">★</button>
+                    </div>
+                </li>
+                <li class="item-musica" id="musica4">
+                    <span class="numero">5.</span>
+                    <span class="info-musica">—</span>
+                    <div class="acoes-item">
+                        <button class="btn-fav" onclick="alternarFavorita(4); mostra()">★</button>
+                    </div>
+                </li>
+            </ul>
+
+            <div class="rodape-lista">
+                <span id="info-total">0 músicas</span>
+                <span id="info-duracao">Duração total: 0:00</span>
+                <span id="info-favoritas">0 favoritas</span>
+            </div>
+        </section>
+
+        <section class="card" id="secao-volume">
+            <h2>Testar validação de volume</h2>
+            <div class="volume-controle">
+                <input type="text" id="input-volume" placeholder="Digite um valor de volume..." />
+                <button onclick="testarVolume()">Validar</button>
+                <span id="resultado-volume"></span>
+            </div>
+        </section>
+
+        <section class="card" id="secao-relatorio">
+            <h2>Relatório da playlist</h2>
+            <pre id="area-relatorio">O relatório aparecera aqui após clicar em "Ver relatório".</pre>
+        </section>
+
+    </div>
+
+    <script src="sistema-refatorado.js"></script>
+    <script>
+        // Apenas interface
+
+        // Inicializa a playlist com 5 músicas de exemplo ao carregar a página
+        function inicializar() {
+            add("Bohemian Rhapsody", "Queen", "Rock", 5, 55);
+            add("Blinding Lights", "The Weeknd", "Pop", 3, 20);
+            add("Lose Yourself", "Eminem", "Hip-Hop", 5, 26);
+            add("Smells Like Teen Spirit", "Nirvana", "Rock", 5, 1);
+            add("Shape of You", "Ed Sheeran", "Pop", 3, 54);
+            mostra();
+            atualizarRodape();
+        }
+
+        // Atualiza os contadores no rodapé da lista
+        function atualizarRodape() {
+            document.getElementById("info-total").innerHTML = playlist.length + " músicas";
+            document.getElementById("info-duracao").innerHTML = "Duração total: " + formatarDuracao(calcularDuracaoTotal(playlist));
+            document.getElementById("info-favoritas").innerHTML = contarFavoritas(playlist) + " favoritas";
+        }
+
+        // Lê os campos do formulário e chama add()
+        function adicionarDaInterface() {
+            var nome = document.getElementById("input-nome").value.trim();
+            var artista = document.getElementById("input-artista").value.trim();
+            var genero = document.getElementById("input-genero").value.trim();
+            var minutos = parseInt(document.getElementById("input-minutos").value) || 0;
+            var segundos = parseInt(document.getElementById("input-segundos").value) || 0;
+
+            if (!nome || !artista || !genero) {
+                alert("Preencha nome, artista e gênero.");
+                return;
+            }
+
+            add(nome, artista, genero, minutos, segundos);
+
+            var lista = document.getElementById("lista-musicas");
+            var idx = playlist.length - 1;
+            if (idx >= 5) {
+                var li = document.createElement("li");
+                li.className = "item-musica";
+                li.id = "musica" + idx;
+                li.innerHTML =
+                    '<span class="numero">' + (idx + 1) + '.</span>' +
+                    '<span class="info-musica">—</span>' +
+                    '<div class="acoes-item">' +
+                    '<button class="btn-fav" onclick="alternarFavorita(' + idx + '); mostra()">★</button>' +
+                    "</div>";
+                lista.appendChild(li);
+            }
+
+            mostra();
+            atualizarRodape();
+
+            document.getElementById("input-nome").value = "";
+            document.getElementById("input-artista").value = "";
+            document.getElementById("input-genero").value = "";
+            document.getElementById("input-min").value = "";
+            document.getElementById("input-seg").value = "";
+        }
+
+        // Ordena e exibe a playlist em ordem alfabética
+        function ordenarEExibir() {
+            var ordenada = ordenarPorPropriedade(playlist, "nome");
+            playlist = ordenada;
+            mostra();
+        }
+
+        // Filtra por artista
+        function filtrarArtista() {
+            var valor = document.getElementById("input-filtro-artista").value.trim();
+            if (!valor) return;
+            var resultado = filtrarPorPropriedade(playlist, "artista", valor);
+            alert("Músicas de " + valor + ": " + resultado.length + " encontrada(s).\nVeja o console para detalhes.");
+            console.log("Filtro artista:", resultado);
+        }
+
+        // Filtra por genero e exibe resultado
+        function filtrarGenero() {
+            var valor = document.getElementById("input-filtro-genero").value.trim();
+            if (!valor) return;
+            var resultado = filtrarPorPropriedade(playlist, "genero", valor);
+            alert("Músicas do genero " + valor + ": " + resultado.length + " encontrada(s).\nVeja o console para detalhes.");
+            console.log("Filtro gênero:", resultado);
+        }
+
+        // Limpa os campos de filtro
+        function limparFiltro() {
+            document.getElementById("input-filtro-artista").value = "";
+            document.getElementById("input-filtro-genero").value = "";
+            mostra();
+        }
+
+        // Testa a funcao f4() com o valor digitado
+        function testarVolume() {
+            var entrada = document.getElementById("input-volume").value;
+            var valor = isNaN(entrada) ? entrada : Number(entrada);
+            var valido = validarVolume(valor);
+            var span = document.getElementById("resultado-volume");
+            span.textContent = valido ? "✅ Volume válido" : "❌ Volume inválido";
+            span.className = valido ? "valido" : "invalido";
+        }
+
+        // Gera o relatorio e exibe na secao da pagina
+        function gerarEExibirRelatorio() {
+            var texto = rel();
+            document.getElementById("area-relatorio").textContent = texto;
+        }
+
+        // Inicializa ao carregar
+        inicializar();
+    </script>
+</body>
+
+</html>
